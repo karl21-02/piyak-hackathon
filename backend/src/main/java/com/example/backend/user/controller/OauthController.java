@@ -57,6 +57,8 @@ public class OauthController {
             @RequestParam(name = "code") String code,
             HttpServletResponse response) throws IOException {
 
+        System.out.println(socialLoginType);
+
         log.info(">> 소셜 로그인 API 서버로부터 받은 code :: {}", code);
 
         // 액세스 토큰을 통해 사용자 정보를 받아온 후 저장
@@ -76,7 +78,7 @@ public class OauthController {
 
             // 로그인한 유저 정보를 response body로 반환
 //            return ResponseEntity.ok(new UserResponse(user.getName(), user.getAccessToken(), user.getProvider()));
-            String redirectUrl = "http://localhost:3000/profile";
+            String redirectUrl = "http://localhost:3000/profile?name=" + user.getName() + "&email=" + user.getEmail();
             response.sendRedirect(redirectUrl);
 
 

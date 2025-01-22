@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./Form3Picker.css";
 import { sendForm } from "@/services/axios";
 
-export default function Form3Picker() {
+export default function Form3Picker({ handleNext }) {
   const initialFormData = (() => {
     const savedData = JSON.parse(localStorage.getItem("save-form3"));
     if (savedData) {
@@ -62,13 +62,13 @@ export default function Form3Picker() {
       console.log("최종 제출 데이터:", finalForm);
 
       // Axios 요청 보내기
-      const response = await sendForm({ form: finalForm });
+      const response = await sendForm(finalForm);
       if (response.status === 200) {
         console.log("성공적으로 제출되었습니다:", response.data);
 
         // response.data를 로컬스토리지에 save-form4로 저장
         localStorage.setItem("save-form4", JSON.stringify(response.data));
-        alert("성공적으로 제출되었습니다! 데이터를 저장했습니다.");
+        alert("메일이 생성되었습니다!");
       } else {
         console.error("제출 중 오류 발생:", response);
         alert("제출 중 문제가 발생했습니다.");
@@ -78,11 +78,17 @@ export default function Form3Picker() {
       alert("제출 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false); // 로딩 종료
+      handleNext();
     }
   };
 
   return (
     <div className="form3-picker-container">
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+        </div>
+      )}
       <h3>* 어떤 상황인가요?</h3>
       <textarea
         placeholder="내용을 입력하세요"
@@ -138,13 +144,13 @@ export default function Form3Picker() {
         )}
       </div>
 
-      {isLoading ? ( // 로딩 중일 때 표시
-        <div className="loading-spinner">
-          <p>제출 중입니다... 잠시만 기다려주세요.</p>
-        </div>
-      ) : (
-        <button onClick={handleSubmit}>제출</button>
-      )}
+      <button
+        className="submit-button"
+        onClick={handleSubmit}
+        disabled={isLoading}
+      >
+        제출
+      </button>
     </div>
   );
 }

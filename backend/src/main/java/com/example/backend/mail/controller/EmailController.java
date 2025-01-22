@@ -6,14 +6,18 @@ import com.example.backend.mail.model.response.EmailResponse;
 import com.example.backend.mail.service.ChatGptService;
 import com.example.backend.mail.service.EmailService;
 import com.example.backend.mail.service.GmailService;
-import com.example.backend.mail.service.GoogleOAuthService;
 import com.example.backend.mail.service.SendService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
@@ -26,13 +30,8 @@ public class EmailController {
 
     private final EmailService emailService;
 
-    private final GoogleOAuthService googleOAuthService;
 
     private final GmailService gmailService;
-
-    private final String BASE_URL = "https://www.googleapis.com/gmail/v1/users/";
-
-    private static final String GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.readonly";
 
     // 모든 메일 응답 조회
     @GetMapping("/all")
@@ -65,24 +64,24 @@ public class EmailController {
     public void saveState(@RequestBody EmailResponse emailResponse) {
         emailService.updateState(emailResponse);
     }
-  
+
     @GetMapping("/emails")
     public String getEmails(@RequestParam String accessToken) {
-//        // 1. OAuth2.0 인증 코드로 액세스 토큰 받기
-//        String accessToken = googleOAuthService.getAccessToken(authorizationCode);
 
-        // 2. 액세스 토큰을 이용해 Gmail API에서 최신 이메일 5개 가져오기
         return gmailService.getLatestEmails(accessToken);
     }
 
     @PostMapping("/send-email")
     public ResponseEntity<String> sendEmail(@RequestBody EmailSendRequest emailSendRequest) {
         try {
-            // EmailService를 호출하여 이메일 전송
+
+//             EmailService를 호출하여 이메일 전송
             sendService.sendEmail(
+                    emailSendRequest.getAccessToken(),
                     emailSendRequest.getRecipient(),
                     emailSendRequest.getSubject(),
                     emailSendRequest.getBody()
+
             );
 
             return ResponseEntity.ok("Email sent successfully.");

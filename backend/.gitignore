@@ -47,4 +47,5 @@ target/
 
 /frontend/
 
-backend/src/main/resources/application.properties
+backend/src/main/resources/
+docker-compose.yml

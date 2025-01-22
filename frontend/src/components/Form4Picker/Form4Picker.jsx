@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Form4Picker.css";
-import { saveState, saveArchive } from "@/services/axios";
+import { sendEmail } from "@/services/axios";
 
 export default function Form4Picker() {
   const initialData = (() => {
@@ -17,54 +17,39 @@ export default function Form4Picker() {
 
   const [generatedData, setGeneratedData] = useState(initialData);
 
-  const handleSave = async () => {
+  const handleSend = async () => {
     try {
-      // 첫 번째 API 호출: saveState
-      const saveStateResponse = await saveState({
-        form: {
-          id: generatedData.id,
-          generatedTitle: generatedData.generatedTitle,
-          generatedContent: generatedData.generatedContent,
-          recipientMail: generatedData.recipientMail,
-          createdAt: generatedData.createdAt,
-          state: "saved",
-        },
-      });
+      // 쿠키에서 accessToken 추출
+      const accessToken = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("accessToken="))
+        ?.split("=")[1];
 
-      console.log("saveState 응답:", saveStateResponse);
+      if (!accessToken) {
+        alert("로그인 상태를 다시 확인해주세요.");
+        return;
+      }
 
-      // 두 번째 API 호출: saveArchive
-      if (saveStateResponse.status === 200) {
-        const form1 = JSON.parse(localStorage.getItem("save-form1")) || {};
-        const form2 = JSON.parse(localStorage.getItem("save-form2")) || {};
-        const form3 = JSON.parse(localStorage.getItem("save-form3")) || {};
+      const submitForm = {
+        accessToken,
+        recipient: generatedData.recipientMail,
+        subject: generatedData.generatedTitle,
+        body: generatedData.generatedContent,
+      };
 
-        const saveArchiveResponse = await saveArchive({
-          form: {
-            form1,
-            form2,
-            form3,
-            form4: {
-              generatedTitle: generatedData.generatedTitle,
-              generatedContent: generatedData.generatedContent,
-            },
-            state: "saved",
-          },
-        });
+      // 메일 전송 API 호출
+      const sendEmailResponse = await sendEmail(submitForm);
 
-        console.log("saveArchive 응답:", saveArchiveResponse);
+      console.log("sendEmail 응답:", sendEmailResponse);
 
-        if (saveArchiveResponse.status === 200) {
-          alert("보관함에 저장되었습니다!");
-        } else {
-          alert("보관함 저장 중 문제가 발생했습니다.");
-        }
+      if (sendEmailResponse.status === 200) {
+        alert(`${generatedData.recipientMail}님께 메일이 전송되었습니다!`);
       } else {
-        alert("상태 저장 중 문제가 발생했습니다.");
+        alert("메일 전송 중 문제가 발생했습니다.");
       }
     } catch (error) {
-      console.error("보관함 저장 중 오류 발생:", error);
-      alert("보관함 저장 중 오류가 발생했습니다.");
+      console.error("메일 전송 중 오류 발생:", error);
+      alert("메일 전송 중 오류가 발생했습니다.");
     }
   };
 
@@ -83,26 +68,29 @@ export default function Form4Picker() {
 
   return (
     <div className="form4-picker-container">
-      <div className="left-section">
-        <h3>AI가 만든 이메일 결과</h3>
-
-        <div className="generated-email">
-          <div>
-            <strong>{generatedData.generatedTitle}</strong>
-          </div>
-          <p className="recipient">
-            받는 사람 <span>{"<"}{generatedData.recipientMail}{">"}</span>
-          </p>
-          <div className="generated-content">
-            {generatedData.generatedContent.split("\n").map((line, index) => (
-              <p key={index}>{line}</p>
-            ))}
-          </div>
+      <h3>AI가 만든 이메일 결과</h3>
+      <div className="generated-email">
+        <div>
+          <strong>{generatedData.generatedTitle}</strong>
+        </div>
+        <p className="recipient">
+          받는 사람{" "}
+          <span>
+            {"<"}
+            {generatedData.recipientMail}
+            {">"}
+          </span>
+        </p>
+        <div className="generated-content">
+          {generatedData.generatedContent.split("\n").map((line, index) => (
+            <p key={index}>{line}</p>
+          ))}
         </div>
       </div>
-
-      <button onClick={handleSave}>보관함 저장</button>
-      <button>메일 보내기</button>
+      <div className="form4-button-box">
+        {/* <button onClick={handleSave}>보관함 저장</button> */}
+        <button onClick={handleSend}>메일 보내기</button>
+      </div>
     </div>
   );
 }
