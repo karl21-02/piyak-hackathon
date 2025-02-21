@@ -1,3 +1,7 @@
+![1](https://github.com/user-attachments/assets/737e4134-19ee-4e5f-bac9-3bd7328f32fe)
+
+
+
 # 📧 Mailper
 
 디지털 네이티브 세대를 위한 AI 기반 맞춤형 이메일 작성 서비스
